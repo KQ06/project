@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# База данных
+*.db
+*.sqlite3
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Секреты (токен бота)
+.env
