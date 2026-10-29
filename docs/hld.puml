@@ -1,0 +1,70 @@
+@startuml
+title DeadlineBot — HLD (component diagram)
+skinparam componentStyle rectangle
+left to right direction
+
+actor "Студент" as Student
+actor "Староста группы" as Owner
+actor "Администратор бота" as Admin
+
+cloud "Telegram Bot API\n(Telegram-клиенты:\nAndroid / iOS / Desktop / Web)" as TG
+cloud "Календарные приложения\n(Google Calendar / Apple Calendar / Outlook)" as Cal
+cloud "Мониторинг и бэкапы\n(UptimeRobot, хранилище копий)" as Ops
+
+rectangle "DeadlineBot (Python, aiogram)" {
+  package "Слой взаимодействия" {
+    component "Handlers / Routers\n(команды, callback-кнопки)" as H
+    component "Dialogs (FSM)\nпошаговый ввод" as FSM
+    component "Keyboards / Message templates" as UI
+  }
+
+  package "Бизнес-логика" {
+    component "DeadlineService\n(CRUD, валидация)" as DS
+    component "PriorityService\n(срок, объём, вес)" as PS
+    component "StatsService\n(недельная статистика)" as SS
+    component "GroupService\n(группы, роли, коды)" as GS
+    component "IcsExportService\n(RFC 5545)" as ICS
+    component "AdminService\n(метрики)" as AS
+  }
+
+  component "Scheduler\n(APScheduler: напоминания 7/3/1,\nдайджест, бэкап)" as SCH
+  component "Notification Sender\n(retry, обработка блокировок)" as NS
+  component "Repository layer" as REPO
+  component "Config (.env)" as CFG
+}
+
+database "SQLite\n(users, deadlines,\ngroups, reminders_log)" as DB
+
+Student --> TG : сообщения, кнопки
+Owner --> TG : управление группой
+Admin --> TG : /admin_stats
+TG <--> H : HTTPS (long polling / webhook)
+
+H --> FSM
+H --> UI
+H --> DS
+H --> PS
+H --> SS
+H --> GS
+H --> ICS
+H --> AS
+FSM --> DS
+
+DS --> REPO
+PS ..> DS : читает задачи
+SS --> REPO
+GS --> REPO
+ICS --> REPO
+AS --> REPO
+REPO --> DB
+
+SCH --> DS : выбор задач к напоминанию
+SCH --> NS
+NS --> TG : sendMessage
+SCH --> REPO : reminders_log
+
+ICS ..> Cal : файл .ics\n(импорт пользователем)
+Ops ..> DB : ежесуточная копия
+Ops ..> H : healthcheck
+CFG ..> H
+@enduml
