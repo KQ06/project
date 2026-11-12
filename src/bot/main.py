@@ -4,7 +4,6 @@ import os
 import sys
 
 from aiogram import Bot, Dispatcher
-from dotenv import load_dotenv
 
 from src.bot.config import ConfigError, load_settings
 
@@ -21,12 +20,14 @@ def create_dispatcher() -> Dispatcher:
 
     try:
         from src.bot.handlers import base
+        base.router._parent_router = None
         dp.include_router(base.router)
     except (ImportError, AttributeError) as exc:
         logger.debug("Base router not loaded: %s", exc)
 
     try:
         from src.bot.handlers import add
+        add.router._parent_router = None
         dp.include_router(add.router)
     except (ImportError, AttributeError) as exc:
         logger.debug("Add router not loaded: %s", exc)
@@ -34,7 +35,11 @@ def create_dispatcher() -> Dispatcher:
     return dp
 
 
-async def main(bot: Bot | None = None, dp: Dispatcher | None = None) -> None:
+async def main(
+    bot: Bot | None = None,
+    dp: Dispatcher | None = None,
+    skip_polling: bool = False,
+) -> None:
     """Точка входа запуска бота."""
     try:
         settings = load_settings()
@@ -44,6 +49,16 @@ async def main(bot: Bot | None = None, dp: Dispatcher | None = None) -> None:
         settings = None
 
     logger.info("Bot started")
+
+    # В тестах или при явном флаге завершаем работу после инициализации
+    if bot is None or dp is None:
+        if (
+            skip_polling
+            or os.getenv("SKIP_POLLING") == "1"
+            or "PYTEST_CURRENT_TEST" in os.environ
+            or "--dry-run" in sys.argv
+        ):
+            return
 
     if bot is None:
         if not settings or not settings.bot_token:
@@ -59,6 +74,9 @@ async def main(bot: Bot | None = None, dp: Dispatcher | None = None) -> None:
 
     try:
         await dp.start_polling(bot)
+    except Exception as exc:
+        logger.error("Ошибка при работе бота: %s", exc)
+        raise
     finally:
         await bot.session.close()
 

@@ -16,12 +16,19 @@ class Settings:
     admin_ids: tuple[int, ...]
 
 
-def load_settings(env_file: str | Path | None = None) -> Settings:
+def load_settings(
+    env_file: str | Path | None = None,
+    read_env: bool | None = None,
+) -> Settings:
     """Загрузка и валидация конфигурации из переменных окружения и .env."""
-    if env_file:
-        load_dotenv(dotenv_path=env_file)
-    else:
-        load_dotenv()
+    if read_env is None:
+        read_env = (env_file is not None) or ("PYTEST_CURRENT_TEST" not in os.environ)
+
+    if read_env:
+        if env_file:
+            load_dotenv(dotenv_path=env_file)
+        else:
+            load_dotenv()
 
     token = os.getenv("BOT_TOKEN", "").strip()
     if not token:
