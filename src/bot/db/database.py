@@ -1,6 +1,8 @@
 import sqlite3
 from pathlib import Path
 
+import aiosqlite
+
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 
 
@@ -10,7 +12,7 @@ def get_schema_sql() -> str:
 
 
 def init_db_sync(db_path: str | Path) -> sqlite3.Connection:
-    """Создать таблицы и индексы в SQLite и вернуть открытое соединение."""
+    """Создать таблицы и индексы в SQLite и вернуть открытое синхронное соединение."""
     path_str = str(db_path)
     if path_str != ":memory:":
         Path(path_str).parent.mkdir(parents=True, exist_ok=True)
@@ -18,4 +20,17 @@ def init_db_sync(db_path: str | Path) -> sqlite3.Connection:
     conn.execute("PRAGMA foreign_keys = ON;")
     conn.executescript(get_schema_sql())
     conn.commit()
+    return conn
+
+
+async def init_db(db_path: str | Path) -> aiosqlite.Connection:
+    """Асинхронно инициализировать SQLite БД и вернуть соединение aiosqlite."""
+    path_str = str(db_path)
+    if path_str != ":memory:":
+        Path(path_str).parent.mkdir(parents=True, exist_ok=True)
+    conn = await aiosqlite.connect(path_str)
+    conn.row_factory = aiosqlite.Row
+    await conn.execute("PRAGMA foreign_keys = ON;")
+    await conn.executescript(get_schema_sql())
+    await conn.commit()
     return conn
