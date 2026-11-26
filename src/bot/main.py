@@ -34,6 +34,13 @@ def create_dispatcher(repo=None) -> Dispatcher:
     except (ImportError, AttributeError) as exc:
         logger.debug("Add router not loaded: %s", exc)
 
+    try:
+        from src.bot.handlers import list as list_handler
+        list_handler.router._parent_router = None
+        dp.include_router(list_handler.router)
+    except (ImportError, AttributeError) as exc:
+        logger.debug("List router not loaded: %s", exc)
+
     return dp
 
 

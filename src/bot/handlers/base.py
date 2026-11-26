@@ -2,6 +2,8 @@ from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
+from src.bot.db.repository import DeadlineRepository
+
 router = Router()
 
 HELP_TEXT = (
@@ -27,7 +29,15 @@ HELP_TEXT = (
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message) -> None:
+async def cmd_start(
+    message: Message, repo: DeadlineRepository | None = None
+) -> None:
+    if repo is not None and message.from_user is not None:
+        await repo.ensure_user(
+            user_id=message.from_user.id,
+            username=message.from_user.username,
+            first_name=message.from_user.first_name,
+        )
     user_name = message.from_user.first_name if message.from_user else "Студент"
     welcome_text = (
         f"👋 Привет, <b>{user_name}</b>!\n\n"
