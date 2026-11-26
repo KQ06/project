@@ -14,9 +14,11 @@ logging.basicConfig(
 logger = logging.getLogger("src.bot.main")
 
 
-def create_dispatcher() -> Dispatcher:
+def create_dispatcher(repo=None) -> Dispatcher:
     """Создание и настройка диспетчера с подключением роутеров."""
     dp = Dispatcher()
+    if repo is not None:
+        dp["repo"] = repo
 
     try:
         from src.bot.handlers import base
@@ -69,8 +71,13 @@ async def main(
             return
         bot = Bot(token=settings.bot_token)
 
+    repo = None
     if dp is None:
-        dp = create_dispatcher()
+        if settings is not None:
+            from src.bot.db.repository import DeadlineRepository
+
+            repo = await DeadlineRepository.from_path(settings.db_path)
+        dp = create_dispatcher(repo=repo)
 
     try:
         await dp.start_polling(bot)
@@ -78,6 +85,8 @@ async def main(
         logger.error("Ошибка при работе бота: %s", exc)
         raise
     finally:
+        if repo is not None:
+            await repo.close()
         await bot.session.close()
 
 
