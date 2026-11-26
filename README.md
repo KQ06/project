@@ -24,12 +24,15 @@ Wiki проекта: [перейти в Wiki](https://github.com/KQ06/project/wi
 
 ## Что умеет продукт сейчас
 
-Статус: реализован и откалиброван базовый рабочий инкремент MVP:
+Статус: реализован и откалиброван рабочий инкремент MVP (7 Must-have задач):
 - **B-01 (WBS 1.1.1):** Каркас приложения на `aiogram 3`, точка входа `src/bot/main.py`, диспетчер и жизненный цикл.
 - **B-02 (WBS 1.1.2):** Конфигурация через `.env` и валидация настроек (`src/bot/config.py`).
-- **B-03 (WBS 1.1.3):** Команды `/start` (приветствие и регистрация) и `/help` (справочник команд) в `src/bot/handlers/base.py`.
-- **B-06 (WBS 1.3.1):** Команда `/add` с гибким парсингом даты, времени, часов и веса в `src/bot/parsing.py` и `src/bot/handlers/add.py`.
-- **Автотесты:** 21 модульный тест в каталоге `tests/` (`test_main.py`, `test_config.py`, `test_base.py`, `test_parsing.py`).
+- **B-03 (WBS 1.1.3):** Команды `/start` (приветствие и регистрация пользователя) и `/help` (справочник команд) в `src/bot/handlers/base.py`.
+- **B-04 (WBS 1.2.1):** Схема базы данных SQLite (`src/bot/db/schema.sql`, `src/bot/db/database.py`): таблицы `users`, `deadlines`, `notifications`, внешние ключи и индексы.
+- **B-05 (WBS 1.2.2):** Асинхронный репозиторий `DeadlineRepository` на `aiosqlite` (`src/bot/db/repository.py`) с полным набором CRUD-операций и отменой уведомлений при завершении.
+- **B-06 (WBS 1.3.1):** Команда `/add` с гибким парсингом даты, времени, часов и веса (`src/bot/parsing.py`, `src/bot/handlers/add.py`) и сохранением в SQLite.
+- **B-08 (WBS 1.3.3):** Команда `/list` (`src/bot/handlers/list.py`) с выводом активных дедлайнов, расчётом оставшегося времени и inline-пагинацией при `> 10` задач.
+- **Автотесты:** 30 модульных тестов в каталоге `tests/` (`test_main.py`, `test_config.py`, `test_base.py`, `test_parsing.py`, `test_db_schema.py`, `test_repository.py`, `test_list.py`).
 
 ---
 
